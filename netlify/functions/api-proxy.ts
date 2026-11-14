@@ -1,5 +1,3 @@
-import type { Config } from '@netlify/functions';
-
 export default async (req: Request) => {
   const incomingUrl = new URL(req.url);
   const path = incomingUrl.pathname;
@@ -34,6 +32,18 @@ export default async (req: Request) => {
 
     const bodyText = await upstreamResponse.text();
 
+    // Guard against upstream returning HTML instead of JSON
+    if (bodyText.trim().startsWith('<')) {
+      return new Response(
+        JSON.stringify({
+          error: 'Upstream returned HTML instead of JSON',
+          status: upstreamResponse.status,
+          targetUrl
+        }),
+        { status: 502, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     return new Response(bodyText, {
       status: upstreamResponse.status,
       headers: {
@@ -50,6 +60,6 @@ export default async (req: Request) => {
   }
 };
 
-export const config: Config = {
+export const config = {
   path: ['/sensestream/*', '/noaa/*']
 };
