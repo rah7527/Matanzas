@@ -25,15 +25,6 @@ export const useTidesStore = defineStore('tidesStore', () => {
 
   const STATION_ID = '8720651'; // Matanzas River at Route 206
   const DATUM = 'NAVD';
-  
-
-  // Formats a local Date into "yyyyMMdd" for NOAA API query params
-  const formatNoaaParamDate = (date: Date): string => {
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const dd = String(date.getDate()).padStart(2, '0');
-    return `${yyyy}${mm}${dd}`;
-  };
 
   // Parses NOAA timestamp "yyyy-MM-dd HH:mm" safely across Safari/Chrome on iOS
   const parseNoaaTimestamp = (tStr: string): Date => {
@@ -58,27 +49,20 @@ export const useTidesStore = defineStore('tidesStore', () => {
     isLoading.value = true;
     error.value = null;
 
-    const today = new Date();
-    const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 6);
+    const params = new URLSearchParams({
+      station: STATION_ID,
+      product: 'predictions',
+      datum: DATUM,
+      time_zone: 'lst_ldt',
+      interval: 'hilo',
+      units: 'english',
+      application: 'Matanzas_WebApp',
+      format: 'json',
+      date: 'today',
+      range: '168'
+    });
 
-    const beginStr = formatNoaaParamDate(today);
-    const endStr = formatNoaaParamDate(endDate);
-
-     const params = new URLSearchParams({
-            station: STATION_ID,
-            product: 'predictions',
-            datum: DATUM,
-            time_zone: 'lst_ldt',
-            interval: 'hilo',
-            units: 'english',
-            application: 'Matanzas_WebApp',
-            format: 'json',
-            date: 'today',
-            range: '168'
-        });
-
-        const url = `https://noaa.gov{params.toString()}`;
-
+    const url = `/noaa/api/prod/datagetter?${params.toString()}`;
 
     try {
       const response = await fetch(url);
