@@ -64,20 +64,21 @@ export const useTidesStore = defineStore('tidesStore', () => {
     const beginStr = formatNoaaParamDate(today);
     const endStr = formatNoaaParamDate(endDate);
 
-    const params = new URLSearchParams({
-      begin_date: beginStr,
-      end_date: endStr,
-      station: STATION_ID,
-      product: 'predictions',
-      datum: DATUM,
-      time_zone: 'lst_ldt',
-      interval: 'hilo',
-      units: 'english',
-      application: 'Matanzas_WebApp',
-      format: 'json'
-    });
+     const params = new URLSearchParams({
+            station: STATION_ID,
+            product: 'predictions',
+            datum: DATUM,
+            time_zone: 'lst_ldt',
+            interval: 'hilo',
+            units: 'english',
+            application: 'Matanzas_WebApp',
+            format: 'json',
+            date: 'today',
+            range: '168'
+        });
 
-  const url = `https://noaa.gov{params.toString()}`;
+        const url = `https://noaa.gov{params.toString()}`;
+
 
     try {
       const response = await fetch(url);
