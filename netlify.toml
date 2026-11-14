@@ -4,18 +4,6 @@
   functions = "netlify/functions"
 
 [[redirects]]
-  from = "/sensestream/*"
-  to = "/.netlify/functions/api-proxy"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/noaa/*"
-  to = "/.netlify/functions/api-proxy"
-  status = 200
-  force = true
-
-[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200

@@ -1,28 +1,27 @@
+import type { Config } from '@netlify/functions';
+
 export default async (req: Request) => {
   const incomingUrl = new URL(req.url);
   const path = incomingUrl.pathname;
   const search = incomingUrl.search;
 
-  let targetBase = '';
-  let strippedPath = '';
+  let targetUrl = '';
   let userAgent = 'MatanzasApp/1.0';
 
   if (path.startsWith('/sensestream')) {
-    targetBase = 'https://api.sensestream.org';
-    strippedPath = path.replace(/^\/sensestream/, '');
+    const upstreamPath = path.replace(/^\/sensestream/, '') || '/';
+    targetUrl = `https://api.sensestream.org${upstreamPath}${search}`;
     userAgent = 'Mozilla/5.0';
   } else if (path.startsWith('/noaa')) {
-    targetBase = 'https://noaa.gov';
-    strippedPath = path.replace(/^\/noaa/, '');
+    const upstreamPath = path.replace(/^\/noaa/, '') || '/';
+    targetUrl = `https://noaa.gov${upstreamPath}${search}`;
     userAgent = 'MatanzasApp/1.0';
   } else {
-    return new Response(JSON.stringify({ error: 'Unknown proxy route' }), {
-      status: 404,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return new Response(
+      JSON.stringify({ error: 'Unknown proxy route', receivedPath: path }),
+      { status: 404, headers: { 'Content-Type': 'application/json' } }
+    );
   }
-
-  const targetUrl = `${targetBase}${strippedPath}${search}`;
 
   try {
     const upstreamResponse = await fetch(targetUrl, {
@@ -44,9 +43,13 @@ export default async (req: Request) => {
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Upstream fetch failed';
-    return new Response(JSON.stringify({ error: message, targetUrl }), {
-      status: 502,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return new Response(
+      JSON.stringify({ error: message, targetUrl }),
+      { status: 502, headers: { 'Content-Type': 'application/json' } }
+    );
   }
+};
+
+export const config: Config = {
+  path: ['/sensestream/*', '/noaa/*']
 };
