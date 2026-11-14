@@ -4,35 +4,38 @@ export default async (req: Request) => {
   const search = incomingUrl.search;
 
   let targetUrl = '';
-  let userAgent = 'MatanzasApp/1.0';
 
   if (path.startsWith('/sensestream')) {
     const upstreamPath = path.replace(/^\/sensestream/, '') || '/';
     targetUrl = `https://api.sensestream.org${upstreamPath}${search}`;
-    userAgent = 'Mozilla/5.0';
   } else if (path.startsWith('/noaa')) {
     const upstreamPath = path.replace(/^\/noaa/, '') || '/';
     targetUrl = `https://noaa.gov${upstreamPath}${search}`;
-    userAgent = 'MatanzasApp/1.0';
   } else {
     return new Response(
       JSON.stringify({ error: 'Unknown proxy route', receivedPath: path }),
-      { status: 404, headers: { 'Content-Type': 'application/json' } }
+      {
+        status: 404,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      }
     );
   }
 
   try {
     const upstreamResponse = await fetch(targetUrl, {
       method: 'GET',
+      redirect: 'follow',
       headers: {
-        'Accept': 'application/json',
-        'User-Agent': userAgent
+        'Accept': 'application/json, text/plain, */*',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
       }
     });
 
     const bodyText = await upstreamResponse.text();
 
-    // Guard against upstream returning HTML instead of JSON
     if (bodyText.trim().startsWith('<')) {
       return new Response(
         JSON.stringify({
@@ -40,7 +43,13 @@ export default async (req: Request) => {
           status: upstreamResponse.status,
           targetUrl
         }),
-        { status: 502, headers: { 'Content-Type': 'application/json' } }
+        {
+          status: 502,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          }
+        }
       );
     }
 
@@ -48,6 +57,7 @@ export default async (req: Request) => {
       status: upstreamResponse.status,
       headers: {
         'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
         'Cache-Control': 'no-store'
       }
     });
@@ -55,7 +65,13 @@ export default async (req: Request) => {
     const message = err instanceof Error ? err.message : 'Upstream fetch failed';
     return new Response(
       JSON.stringify({ error: message, targetUrl }),
-      { status: 502, headers: { 'Content-Type': 'application/json' } }
+      {
+        status: 502,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      }
     );
   }
 };
