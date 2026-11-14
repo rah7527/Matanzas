@@ -1,0 +1,22 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/sensestream/*"
+  to = "https://sensestream.org"
+  status = 200
+  force = true
+  headers = { X-From = "Netlify", Accept = "application/json" }
+
+[[redirects]]
+  from = "/noaa/*"
+  to = "https://noaa.gov"
+  status = 200
+  force = true
+  headers = { X-From = "Netlify", Accept = "application/json" }
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
