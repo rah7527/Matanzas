@@ -24,7 +24,8 @@ export const useTidesStore = defineStore('tidesStore', () => {
   const lastUpdated = ref<string | null>(null);
 
   const STATION_ID = '8720651'; // Matanzas River at Route 206
-  const DATUM = 'NAVD';   
+  const DATUM = 'NAVD';
+  
 
   // Formats a local Date into "yyyyMMdd" for NOAA API query params
   const formatNoaaParamDate = (date: Date): string => {
@@ -76,7 +77,7 @@ export const useTidesStore = defineStore('tidesStore', () => {
       format: 'json'
     });
 
-const url = `/noaa/api/prod/datagetter?${params.toString()}`;
+  const url = `https://noaa.gov{params.toString()}`;
 
     try {
       const response = await fetch(url);
